@@ -1,0 +1,224 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>TQS HW1 - Environment Monitor</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+</head>
+<body>
+<div class="container">
+
+    <div class="row my-3">
+        <div class="col-12">
+            <h1>TQS HW1 - Environment Monitor</h1>
+        </div>
+    </div>
+
+    <div class="row my-3">
+        <form class="col-6 d-inline-flex align-items-center" method="get" action="#" th:action="@{/search}">
+                <label id="search_label" for="search_input" class="col-form-label me-2">Insert a Location:</label>
+                <input id="search_input" class="form-control w-25 me-2" type="text" name="q" required th:value="${query}">
+                <button id="search_button" class="btn btn-primary me-2" type="submit">Search</button>
+                <!-- Location and Country -->
+                <label th:if="${location_country != null}" id="search_results" class="col-form-label"
+                       th:utext="${'Showing results for <b>' + location_country + '</b>'}"></label>
+        </form>
+
+        <!-- Cache Stats -->
+
+        <div class="col-6">
+            <table id="cache_table" class="table">
+                <thead>
+                <tr>
+                    <th scope="col"></th>
+                    <th class="text-end" scope="col">Time to Live (TTL)</th>
+                    <th class="text-end" scope="col">Nr. Items</th>
+                    <th class="text-end" scope="col">Nr. Requests</th>
+                    <th class="text-end" scope="col">Nr. Hits</th>
+                    <th class="text-end" scope="col">Nr. Misses</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><b>Cache Stats</b></td>
+                    <td class="text-end" th:text="${cache.ttl}"></td>
+                    <td class="text-end" th:text="${cache.NItems + '/' + cache.capacity}"></td>
+                    <td class="text-end" th:text="${cache.NRequests}"></td>
+                    <td class="text-end" th:text="${cache.NHits}"></td>
+                    <td class="text-end" th:text="${cache.NMisses}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row my-3">
+
+        <!-- Current Environment -->
+
+        <div class="col-12 mb-3">
+            <h2 id="current_header">Current Air Quality</h2>
+        </div>
+
+        <div class="col-12 mb-3" th:if="${env_current == null}">
+            <p id="current_empty">Nothing to show here.</p>
+        </div>
+        <div class="col-12" th:if="${env_current != null}">
+            <table id="current_table" class="table">
+                <thead>
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col">Air Quality Index (AQI)</th>
+                    <th class="text-end" scope="col">CO (μg/m³)</th>
+                    <th class="text-end" scope="col">NH3 (μg/m³)</th>
+                    <th class="text-end" scope="col">NO (μg/m³)</th>
+                    <th class="text-end" scope="col">NO2 (μg/m³)</th>
+                    <th class="text-end" scope="col">O3 (μg/m³)</th>
+                    <th class="text-end" scope="col">PM10 (μg/m³)</th>
+                    <th class="text-end" scope="col">PM2.5 (μg/m³)</th>
+                    <th class="text-end" scope="col">SO2 (μg/m³)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${env_current.items}">
+                    <td class="text-capitalize" th:text="${#dates.format(new java.util.Date(item.dt), 'E, d')}"></td>
+                    <td th:text="${#dates.format(new java.util.Date(item.dt), 'HH:mm:ss')}"></td>
+                    <div th:switch="${item.aqi}">
+                        <td th:case="1" style="background-color: red" >Awful</td>
+                        <td th:case="2" style="background-color: orange">Bad</td>
+                        <td th:case="3" style="background-color: yellow">Moderate</td>
+                        <td th:case="4" style="background-color: green">Good</td>
+                        <td th:case="5" style="background-color: limegreen">Excellent</td>
+                    </div>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.co, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.nh3, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.no, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.no2, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.o3, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.pm10, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.pm2_5, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.so2, 1, 2)}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row my-3">
+
+        <!-- Forecast Environment -->
+
+        <div class="col-12 mb-3">
+            <h2 id="forecast_header">Forecast Air Quality</h2>
+        </div>
+
+        <div class="col-12" th:if="${env_forecast == null}">
+            <p id="forecast_empty">Nothing to show here.</p>
+        </div>
+        <div class="col-12 mb-3" th:if="${env_forecast != null}">
+            <canvas id="forecast_chart" style="width: 100%"></canvas>
+            <script type="text/javascript" th:inline="javascript">
+                env_forecast = [[${env_forecast.items}]];
+                // Get x-axis
+                let xx = env_forecast.map(item => moment(new Date(item.dt)).format("dddd, D HH:mm:ss"));
+                // Get y-axis
+                let co = env_forecast.map(item => item.components.co);
+                let nh3 = env_forecast.map(item => item.components.nh3);
+                let no = env_forecast.map(item => item.components.no);
+                let no2 = env_forecast.map(item => item.components.no2);
+                let o3 = env_forecast.map(item => item.components.o3);
+                let pm10 = env_forecast.map(item => item.components.pm10);
+                let pm2_5 = env_forecast.map(item => item.components.pm2_5);
+                let so2 = env_forecast.map(item => item.components.so2);
+                new Chart("forecast_chart", {
+                    type: "line",
+                    data: {
+                        labels: xx,
+                        datasets: [
+                            {data: co, fill: false, borderColor: "green", label: "CO - Carbon Monoxide"},
+                            {data: nh3, fill: false, borderColor: "yellow", label: "NH3 - Ammonia"},
+                            {data: no, fill: false, borderColor: "violet", label: "NO - Nitric Oxide"},
+                            {data: no2, fill: false, borderColor: "orange", label: "NO2 - Nitrogen Dioxide"},
+                            {data: o3, fill: false, borderColor: "red", label: "O3 - Ozone"},
+                            {data: pm10, fill: false, borderColor: "cyan", label: "PM10 - Particulate Matter < 10 µm"},
+                            {
+                                data: pm2_5,
+                                fill: false,
+                                borderColor: "gray",
+                                label: "PM2.5 - Particulate Matter < 2.5 µm"
+                            },
+                            {data: so2, fill: false, borderColor: "purple", label: "SO2 - Sulfur Dioxide"}
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                ticks: {
+                                    autoSkip: true,
+                                    maxTicksLimit: 12
+                                }
+                            }]
+                        },
+                        tooltips: {
+                            mode: "label"
+                        },
+                        legend: {
+                            position: "bottom"
+                        },
+                        devicePixelRatio: 2
+                    }
+                });
+            </script>
+        </div>
+        <div class="col-12" th:if="${env_forecast != null}">
+            <table id="forecast_table" class="table">
+                <thead>
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                    <th scope="col">Air Quality Index (AQI)</th>
+                    <th class="text-end" scope="col">CO (μg/m³)</th>
+                    <th class="text-end" scope="col">NH3 (μg/m³)</th>
+                    <th class="text-end" scope="col">NO (μg/m³)</th>
+                    <th class="text-end" scope="col">NO2 (μg/m³)</th>
+                    <th class="text-end" scope="col">O3 (μg/m³)</th>
+                    <th class="text-end" scope="col">PM10 (μg/m³)</th>
+                    <th class="text-end" scope="col">PM2.5 (μg/m³)</th>
+                    <th class="text-end" scope="col">SO2 (μg/m³)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item : ${env_forecast.items}">
+                    <td class="text-capitalize" th:text="${#dates.format(new java.util.Date(item.dt), 'E, d')}"></td>
+                    <td th:text="${#dates.format(new java.util.Date(item.dt), 'HH:mm:ss')}"></td>
+                    <div th:switch="${item.aqi}">
+                        <td th:case="1" style="background-color: red" >Awful</td>
+                        <td th:case="2" style="background-color: orange">Bad</td>
+                        <td th:case="3" style="background-color: yellow">Moderate</td>
+                        <td th:case="4" style="background-color: green">Good</td>
+                        <td th:case="5" style="background-color: limegreen">Excellent</td>
+                    </div>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.co, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.nh3, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.no, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.no2, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.o3, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.pm10, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.pm2_5, 1, 2)}"></td>
+                    <td class="text-end" th:text="${#numbers.formatDecimal(item.components.so2, 1, 2)}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
