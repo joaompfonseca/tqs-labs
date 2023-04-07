@@ -1,4 +1,4 @@
-# TQS - Lab Activities
+# TQS Lab Activities
 
 ## Description
 
@@ -9,5 +9,3 @@ Individual portfolio containing the resolution of the laboratory activities of T
 ## Author
 
 - João Fonseca, 103154
-
-# 
